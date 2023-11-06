@@ -21,6 +21,9 @@ private:
 	void OnClearButtonClicked(wxCommandEvent& evt);
 	void ClearTasks();
 
+	void OnWindowClosed(wxCloseEvent& evt);
+	void GetTasksFromFile();
+
 	wxPanel* panel;
 	wxStaticText* head_text;
 	wxTextCtrl* input_task;
