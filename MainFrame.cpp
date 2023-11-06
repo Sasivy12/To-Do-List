@@ -8,6 +8,7 @@ MainFrame::MainFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title)
 {
 	Controls();
 	BindEVTs();
+	GetTasksFromFile();
 }
 
 void MainFrame::Controls()
@@ -18,7 +19,8 @@ void MainFrame::Controls()
 	panel = new wxPanel(this);
 	panel->SetFont(mainfont);
 
-	head_text = new wxStaticText(panel, wxID_ANY, "TO-DO List", wxPoint(0, 25), wxSize(800, -1), wxALIGN_CENTER_HORIZONTAL);
+	head_text = new wxStaticText(panel, wxID_ANY, "TO-DO List", wxPoint(0, 25)
+		, wxSize(800, -1), wxALIGN_CENTER_HORIZONTAL);
 	head_text->SetFont(head_font);
 
 	input_task = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(80, 90), wxSize(500, 35));
@@ -36,6 +38,7 @@ void MainFrame::BindEVTs()
 	task_button->Bind(wxEVT_BUTTON, &MainFrame::OnAddButtonClicked, this);
 	clear_button->Bind(wxEVT_BUTTON, &MainFrame::OnClearButtonClicked, this);
 	task_box->Bind(wxEVT_KEY_DOWN, &MainFrame::CheckButtons, this);
+	this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnWindowClosed, this);
 }
 
 void MainFrame::OnAddButtonClicked(wxCommandEvent& evt)
@@ -84,8 +87,8 @@ void MainFrame::MoveTask(int pos)
 
 	if (newPos >= 0 && newPos < task_box->GetCount())
 	{
-			SwapTask(selectedTask, newPos);
-			task_box->SetSelection(newPos, true);
+		SwapTask(selectedTask, newPos);
+		task_box->SetSelection(newPos, true);
 	}
 }
 
@@ -115,4 +118,32 @@ void MainFrame::DeleteTask()
 void MainFrame::OnClearButtonClicked(wxCommandEvent& evt)
 {
 	task_box->Clear();
+}
+
+void MainFrame::OnWindowClosed(wxCloseEvent& evt)
+{
+	std::vector <Task> tasks;
+
+	for (int i = 0; i < task_box->GetCount(); i++)
+	{
+		Task task;
+		task.descr = task_box->GetString(i);
+		task.done = task_box->IsChecked(i);
+		tasks.push_back(task);
+	}
+
+	SaveTasks(tasks, "tasks.txt");
+	evt.Skip();
+}
+
+void MainFrame::GetTasksFromFile()
+{
+	std::vector <Task> tasks =  GetTasks("tasks.txt");
+
+	for (const Task& task : tasks)
+	{
+		int index = task_box->GetCount();
+		task_box->Insert(task.descr, index);
+		task_box->Check(index, task.done);
+	}
 }
